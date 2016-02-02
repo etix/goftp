@@ -165,6 +165,11 @@ func (c *ServerConn) feat() error {
 	return nil
 }
 
+func (c *ServerConn) Feature(feat string) (string, bool) {
+	v, ok := c.features[feat]
+	return v, ok
+}
+
 // epsv issues an "EPSV" command to get a port number for a data connection.
 func (c *ServerConn) epsv() (port int, err error) {
 	_, line, err := c.cmd(StatusExtendedPassiveMode, "EPSV")
