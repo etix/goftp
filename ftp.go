@@ -319,7 +319,10 @@ func parseRFC3659ListLine(line string) (*Entry, error) {
 			}
 		case "type":
 			switch value {
-			case "dir", "cdir", "pdir":
+			case "cdir", "pdir":
+				// Discard current and parent dir
+				return nil, nil
+			case "dir":
 				e.Type = EntryTypeFolder
 			case "file":
 				e.Type = EntryTypeFile
@@ -515,7 +518,7 @@ func (c *ServerConn) List(path string) (entries []*Entry, err error) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		entry, err := parseListLine(line)
-		if err == nil {
+		if err == nil && entry != nil {
 			entries = append(entries, entry)
 		}
 	}
