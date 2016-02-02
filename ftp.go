@@ -326,6 +326,8 @@ func parseRFC3659ListLine(line string) (*Entry, error) {
 				e.Type = EntryTypeFolder
 			case "file":
 				e.Type = EntryTypeFile
+			case "OS.unix=symlink":
+				e.Type = EntryTypeLink
 			}
 		case "size":
 			e.setSize(value)
