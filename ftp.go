@@ -30,6 +30,7 @@ type ServerConn struct {
 	timeout     time.Duration
 	features    map[string]string
 	disableEPSV bool
+	listall     bool
 }
 
 // Entry describes a file and is returned by List().
@@ -81,6 +82,7 @@ func DialTimeout(addr string, timeout time.Duration) (*ServerConn, error) {
 		host:     host,
 		timeout:  timeout,
 		features: make(map[string]string),
+		listall:  true,
 	}
 
 	_, _, err = c.conn.ReadResponse(StatusReady)
@@ -576,7 +578,10 @@ func (c *ServerConn) NameList(path string) (entries []string, err error) {
 func (c *ServerConn) List(path string) (entries []*Entry, err error) {
 	var conn net.Conn
 
-	commands := []string{"MLSD", "LIST"}
+	commands := []string{"MLSD", "LIST -a", "LIST"}
+	if !c.listall {
+		commands = append(commands[:1], commands[2:]...)
+	}
 	if _, mlstSupported := c.features["MLST"]; !mlstSupported {
 		commands = commands[1:]
 	}
@@ -585,6 +590,11 @@ func (c *ServerConn) List(path string) (entries []*Entry, err error) {
 		conn, err = c.cmdDataConnFrom(0, "%s %s", cmd, path)
 		if err == nil {
 			break
+		}
+		if cmd == "LIST -a" {
+			// "LIST -a" is not supported
+			// Fall back to LIST
+			c.listall = false
 		}
 	}
 
